@@ -38,7 +38,8 @@
 # Build data
 /build/
 
-# Composer PHAR
+# Composer
+/composer.json
 /composer.phar
 
 # Backup entities generated with doctrine:generate:entities command
