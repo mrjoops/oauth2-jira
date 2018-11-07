@@ -39,7 +39,7 @@
 /build/
 
 # Composer
-/composer.json
+/composer.lock
 /composer.phar
 
 # Backup entities generated with doctrine:generate:entities command
