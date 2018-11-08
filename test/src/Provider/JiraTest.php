@@ -92,10 +92,10 @@ class JiraTest extends \PHPUnit_Framework_TestCase
 
     public function testOwnerData()
     {
-        $cloudId = uniqid();
+        $id = uniqid();
+        $email = uniqid();
         $name = uniqid();
-        $avatarUrl = uniqid();
-        $scopes = uniqid();
+        $nickname = uniqid();
 
         $postResponse = m::mock('Psr\Http\Message\ResponseInterface');
         $postResponse
@@ -104,30 +104,61 @@ class JiraTest extends \PHPUnit_Framework_TestCase
         $postResponse->shouldReceive('getHeader')->andReturn(['content-type' => 'application/x-www-form-urlencoded']);
         $postResponse->shouldReceive('getStatusCode')->andReturn(200);
         
+        $resourceResponse = m::mock('Psr\Http\Message\ResponseInterface');
+        $resourceResponse->shouldReceive('getBody')
+            ->andReturn('[{"id":"mock_id","name":"mock_name","avatarUrl":"mock_avatarUrl","scopes":["mock_scopes"]}]');
+        $resourceResponse->shouldReceive('getHeader')->andReturn(['content-type' => 'json']);
+        $resourceResponse->shouldReceive('getStatusCode')->andReturn(200);
+        
         $userResponse = m::mock('Psr\Http\Message\ResponseInterface');
         $userResponse->shouldReceive('getBody')
-            ->andReturn('[{"id":"'.$cloudId.'","name":"'.$name.'","avatarUrl":"'.$avatarUrl.'","scopes":["'.$scopes.'"]}]');
+            ->andReturn(<<<ETX
+{
+  "self": "http://your-domain.atlassian.net/rest/api/3/user?username=mia",
+  "key": "mia",
+  "accountId": "$id",
+  "name": "$nickname",
+  "emailAddress": "$email",
+  "avatarUrls": {
+    "48x48": "http://your-domain.atlassian.net/secure/useravatar?size=large&ownerId=mia",
+    "24x24": "http://your-domain.atlassian.net/secure/useravatar?size=small&ownerId=mia",
+    "16x16": "http://your-domain.atlassian.net/secure/useravatar?size=xsmall&ownerId=mia",
+    "32x32": "http://your-domain.atlassian.net/secure/useravatar?size=medium&ownerId=mia"
+  },
+  "displayName": "$name",
+  "active": true,
+  "timeZone": "Australia/Sydney",
+  "groups": {
+    "size": 3,
+    "items": []
+  },
+  "applicationRoles": {
+    "size": 1,
+    "items": []
+  }
+}
+ETX
+            );
         $userResponse->shouldReceive('getHeader')->andReturn(['content-type' => 'json']);
         $userResponse->shouldReceive('getStatusCode')->andReturn(200);
 
         $client = m::mock('GuzzleHttp\ClientInterface');
         $client->shouldReceive('send')
-            ->times(2)
-            ->andReturn($postResponse, $userResponse);
+            ->times(3)
+            ->andReturn($postResponse, $resourceResponse, $userResponse);
         $this->provider->setHttpClient($client);
 
         $token = $this->provider->getAccessToken('authorization_code', ['code' => 'mock_authorization_code']);
         $user = $this->provider->getResourceOwner($token);
 
-        $this->assertEquals($cloudId, $user->getId());
-        $this->assertEquals($cloudId, $user->toArray()['id']);
+        $this->assertEquals($id, $user->getId());
+        $this->assertEquals($id, $user->toArray()['accountId']);
+        $this->assertEquals($email, $user->getEmail());
+        $this->assertEquals($email, $user->toArray()['emailAddress']);
         $this->assertEquals($name, $user->getName());
-        $this->assertEquals($name, $user->toArray()['name']);
-        $this->assertEquals($avatarUrl, $user->getAvatarUrl());
-        $this->assertEquals($avatarUrl, $user->toArray()['avatarUrl']);
-        $this->assertEquals([$scopes], $user->getScopes());
-        $this->assertEquals([$scopes], $user->toArray()['scopes']);
-        $this->assertContains($cloudId, $user->getUrl());
+        $this->assertEquals($name, $user->toArray()['displayName']);
+        $this->assertEquals($nickname, $user->getNickname());
+        $this->assertEquals($nickname, $user->toArray()['name']);
     }
 
     /**

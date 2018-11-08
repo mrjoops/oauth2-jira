@@ -25,17 +25,17 @@ class JiraResourceOwner implements ResourceOwnerInterface
     {
         $this->response = $response;
     }
-
+    
     /**
-     * Get resource owner avatar url
+     * Get resource owner email
      *
      * @return string|null
      */
-    public function getAvatarUrl()
+    public function getEmail()
     {
-        return $this->getValueByKey($this->response, '0.avatarUrl');
+        return $this->getValueByKey($this->response, 'emailAddress');
     }
-
+    
     /**
      * Get resource owner id
      *
@@ -43,9 +43,9 @@ class JiraResourceOwner implements ResourceOwnerInterface
      */
     public function getId()
     {
-        return $this->getValueByKey($this->response, '0.id');
+        return $this->getValueByKey($this->response, 'accountId');
     }
-
+    
     /**
      * Get resource owner name
      *
@@ -53,27 +53,17 @@ class JiraResourceOwner implements ResourceOwnerInterface
      */
     public function getName()
     {
-        return $this->getValueByKey($this->response, '0.name');
+        return $this->getValueByKey($this->response, 'displayName');
     }
-
+    
     /**
-     * Get resource owner scopes
-     *
-     * @return array|null
-     */
-    public function getScopes()
-    {
-        return $this->getValueByKey($this->response, '0.scopes');
-    }
-
-    /**
-     * Get resource owner url
+     * Get resource owner nickname
      *
      * @return string|null
      */
-    public function getUrl()
+    public function getNickname()
     {
-        return ($cloudId = $this->getId()) ? 'https://api.atlassian.com/ex/jira/'.$cloudId.'/' : null;
+        return $this->getValueByKey($this->response, 'name');
     }
 
     /**
@@ -83,6 +73,6 @@ class JiraResourceOwner implements ResourceOwnerInterface
      */
     public function toArray()
     {
-        return current($this->response);
+        return $this->response;
     }
 }
