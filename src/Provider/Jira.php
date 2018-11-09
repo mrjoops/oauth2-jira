@@ -131,7 +131,7 @@ class Jira extends AbstractProvider
      *
      * @return string Scope separator, defaults to ' '
      */
-    protected function getScopeSeparator(): string
+    protected function getScopeSeparator()
     {
         return ' ';
     }
