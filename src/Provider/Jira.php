@@ -13,6 +13,12 @@ class Jira extends AbstractProvider
 {
     use ArrayAccessorTrait;
     use BearerAuthorizationTrait;
+    
+    /**
+     *
+     * @var string URL used for non-OAuth API calls
+     */
+    protected $apiUrl;
 
     /**
      * Check a provider response for errors.
@@ -43,6 +49,15 @@ class Jira extends AbstractProvider
     protected function createResourceOwner(array $response, AccessToken $token)
     {
         return new JiraResourceOwner($response);
+    }
+    
+    /**
+     *
+     * @return string URL used for non-OAuth API calls
+     */
+    public function getApiUrl()
+    {
+        return $this->apiUrl;
     }
 
     /**
@@ -77,7 +92,7 @@ class Jira extends AbstractProvider
      */
     protected function getDefaultScopes()
     {
-        return [];
+        return ['jira:read-user'];
     }
     
     /**
@@ -89,18 +104,44 @@ class Jira extends AbstractProvider
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token)
     {
-        $request = $this->getAuthenticatedRequest(self::METHOD_GET, 'https://api.atlassian.com/oauth/token/accessible-resources', $token);
+        $request = $this->getAuthenticatedRequest(
+            self::METHOD_GET,
+            'https://api.atlassian.com/oauth/token/accessible-resources',
+            $token
+        );
 
         $response = $this->getParsedResponse($request);
 
         if (false === is_array($response)) {
-            throw new UnexpectedValueException(
+            throw new \UnexpectedValueException(
                 'Invalid response received from Authorization Server. Expected JSON.'
             );
         }
         
         $cloudId = $this->getValueByKey($response, '0.id');
+        
+        $this->setApiUrl('https://api.atlassian.com/ex/jira/'.$cloudId);
 
-        return 'https://api.atlassian.com/ex/jira/'.$cloudId.'/user';
+        return $this->getApiUrl().'/rest/api/3/myself';
+    }
+    
+    /**
+     * Returns the string that should be used to separate scopes when building
+     * the URL for requesting an access token.
+     *
+     * @return string Scope separator, defaults to ' '
+     */
+    protected function getScopeSeparator(): string
+    {
+        return ' ';
+    }
+    
+    /**
+     *
+     * @param string $url URL used for non-OAuth API calls
+     */
+    protected function setApiUrl($url)
+    {
+        $this->apiUrl = $url;
     }
 }

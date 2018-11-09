@@ -44,7 +44,7 @@ class JiraTest extends \PHPUnit_Framework_TestCase
 
     public function testScopes()
     {
-        $scopeSeparator = ',';
+        $scopeSeparator = ' ';
         $options = ['scope' => [uniqid(), uniqid()]];
         $query = ['scope' => implode($scopeSeparator, $options['scope'])];
         $url = $this->provider->getAuthorizationUrl($options);
@@ -197,5 +197,26 @@ ETX
             ->andReturn($postResponse);
         $this->provider->setHttpClient($client);
         $token = $this->provider->getAccessToken('authorization_code', ['code' => 'mock_authorization_code']);
+    }
+
+    /**
+     * @expectedException UnexpectedValueException
+     **/
+    public function testExceptionThrownWhenAskingForResourceOwner()
+    {
+        $status = 200;
+        $postResponse = m::mock('Psr\Http\Message\ResponseInterface');
+        $postResponse->shouldReceive('getBody')->andReturn('<html><body>some unexpected response.</body></html>');
+        $postResponse->shouldReceive('getHeader')->andReturn(['content-type' => 'text/html']);
+        $postResponse->shouldReceive('getStatusCode')->andReturn($status);
+
+        $client = m::mock('GuzzleHttp\ClientInterface');
+        $client->shouldReceive('send')
+            ->times(1)
+            ->andReturn($postResponse);
+        $this->provider->setHttpClient($client);
+        
+        $token = new \League\OAuth2\Client\Token\AccessToken(['access_token' => 'mock_access_token']);
+        $this->provider->getResourceOwnerDetailsUrl($token);
     }
 }
