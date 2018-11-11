@@ -161,9 +161,6 @@ ETX
         $this->assertEquals($nickname, $user->toArray()['name']);
     }
 
-    /**
-     * @expectedException League\OAuth2\Client\Provider\Exception\IdentityProviderException
-     **/
     public function testExceptionThrownWhenErrorObjectReceived()
     {
         $status = rand(400, 600);
@@ -177,12 +174,14 @@ ETX
             ->times(1)
             ->andReturn($postResponse);
         $this->provider->setHttpClient($client);
-        $token = $this->provider->getAccessToken('authorization_code', ['code' => 'mock_authorization_code']);
+        
+        try {
+            $token = $this->provider->getAccessToken('authorization_code', ['code' => 'mock_authorization_code']);
+        } catch (\Exception $e) {
+            $this->assertInstanceOf(\League\OAuth2\Client\Provider\Exception\IdentityProviderException::class, $e);
+        }
     }
 
-    /**
-     * @expectedException League\OAuth2\Client\Provider\Exception\IdentityProviderException
-     **/
     public function testExceptionThrownWhenOAuthErrorReceived()
     {
         $status = 200;
@@ -196,12 +195,14 @@ ETX
             ->times(1)
             ->andReturn($postResponse);
         $this->provider->setHttpClient($client);
-        $token = $this->provider->getAccessToken('authorization_code', ['code' => 'mock_authorization_code']);
+        
+        try {
+            $token = $this->provider->getAccessToken('authorization_code', ['code' => 'mock_authorization_code']);
+        } catch (\Exception $e) {
+            $this->assertInstanceOf(\League\OAuth2\Client\Provider\Exception\IdentityProviderException::class, $e);
+        }
     }
 
-    /**
-     * @expectedException UnexpectedValueException
-     **/
     public function testExceptionThrownWhenAskingForResourceOwner()
     {
         $status = 200;
@@ -217,6 +218,11 @@ ETX
         $this->provider->setHttpClient($client);
         
         $token = new \League\OAuth2\Client\Token\AccessToken(['access_token' => 'mock_access_token']);
-        $this->provider->getResourceOwnerDetailsUrl($token);
+
+        try {
+            $this->provider->getResourceOwnerDetailsUrl($token);
+        } catch (\Exception $e) {
+            $this->assertInstanceOf(\UnexpectedValueException::class, $e);
+        }
     }
 }
