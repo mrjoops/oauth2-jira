@@ -92,7 +92,7 @@ class Jira extends AbstractProvider
      */
     protected function getDefaultScopes()
     {
-        return ['jira:read-user'];
+        return ['read:jira-user'];
     }
     
     /**
