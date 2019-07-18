@@ -69,7 +69,7 @@ class Jira extends AbstractProvider
      */
     public function getBaseAccessTokenUrl(array $params)
     {
-        return 'https://accounts.atlassian.com/oauth/token';
+        return 'https://auth.atlassian.com/oauth/token';
     }
 
     /**
@@ -79,7 +79,7 @@ class Jira extends AbstractProvider
      */
     public function getBaseAuthorizationUrl()
     {
-        return 'https://accounts.atlassian.com/authorize?audience=api.atlassian.com&prompt=consent';
+        return 'https://auth.atlassian.com/authorize?audience=api.atlassian.com&prompt=consent';
     }
 
     /**
@@ -92,7 +92,7 @@ class Jira extends AbstractProvider
      */
     protected function getDefaultScopes()
     {
-        return ['jira:read-user'];
+        return ['read:jira-user'];
     }
     
     /**
